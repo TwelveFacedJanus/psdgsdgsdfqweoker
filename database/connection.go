@@ -14,7 +14,7 @@ var DB *gorm.DB
 // ConnectDB подключается к PostgreSQL базе данных
 func ConnectDB() {
 	// Получаем параметры подключения из переменных окружения или используем значения по умолчанию
-	host := getEnv("DB_HOST", "localhost")
+	host := getEnv("DB_HOST", "postgres")
 	port := getEnv("DB_PORT", "5432")
 	user := getEnv("DB_USER", "poker_user")
 	password := getEnv("DB_PASSWORD", "poker_password")

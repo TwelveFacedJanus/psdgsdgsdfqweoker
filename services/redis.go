@@ -21,7 +21,7 @@ var Redis *RedisService
 
 // InitRedis инициализирует подключение к Redis
 func InitRedis() error {
-	addr := getEnv("REDIS_ADDR", "localhost:6379")
+	addr := getEnv("REDIS_ADDR", "redis:6379")
 	password := getEnv("REDIS_PASSWORD", "")
 	db := 0
 

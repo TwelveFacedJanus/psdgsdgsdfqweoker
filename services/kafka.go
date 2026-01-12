@@ -22,7 +22,7 @@ var Kafka *KafkaService
 
 // InitKafka инициализирует подключение к Kafka
 func InitKafka() error {
-	brokers := strings.Split(getEnv("KAFKA_BROKERS", "localhost:9092"), ",")
+	brokers := strings.Split(getEnv("KAFKA_BROKERS", "kafka:9092"), ",")
 	
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true

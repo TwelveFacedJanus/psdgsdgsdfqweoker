@@ -16,6 +16,9 @@ COPY . .
 # Собираем приложение
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/main.go
 
+# Генерируем Swagger документацию
+RUN go run github.com/swaggo/swag/cmd/swag@latest init -g cmd/main.go -o docs
+
 # Финальный образ
 FROM alpine:latest
 

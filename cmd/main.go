@@ -8,6 +8,7 @@ import (
 	"poker/services"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/joho/godotenv"
 
 	_ "poker/docs" // Импорт сгенерированных Swagger документов
@@ -26,7 +27,7 @@ import (
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
 
-// @host localhost:3000
+// @host 208.123.185.204:3000
 // @BasePath /api/v1
 
 // @securityDefinitions.apikey TelegramAuth
@@ -57,6 +58,19 @@ func main() {
 	services.InitTableManager()
 
 	app := fiber.New()
+
+	// CORS middleware
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "*",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization,x-init-data",
+		AllowCredentials: false,
+	}))
+
+	// Обработка preflight OPTIONS запросов
+	app.Options("/*", func(c fiber.Ctx) error {
+		return c.SendStatus(204)
+	})
 
 	// Swagger документация
 	app.Get("/swagger/", func(c fiber.Ctx) error {

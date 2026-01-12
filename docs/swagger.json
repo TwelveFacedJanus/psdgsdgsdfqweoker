@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Полнофункциональный REST API для игры в покер с категориями столов LOW, MID, VIP. Использует PostgreSQL, Kafka, Redis и авторизацию через Telegram Web App",
+        "description": "Полнофункциональный REST API для игры в покер с категориями столов LOW, MID, VIP\nИспользует PostgreSQL, Kafka, Redis и авторизацию через Telegram Web App",
         "title": "Poker REST API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
@@ -15,237 +15,26 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:3000",
+    "host": "208.123.185.204:3000",
     "basePath": "/api/v1",
     "paths": {
-        "/healthcheck": {
-            "get": {
-                "description": "Возвращает статус работы сервера",
-                "consumes": ["application/json"],
-                "produces": ["text/plain"],
-                "tags": ["system"],
-                "summary": "Проверка состояния сервера",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/profile": {
-            "get": {
-                "security": [{"TelegramAuth": []}],
-                "description": "Возвращает профиль авторизованного пользователя",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["users"],
-                "summary": "Получить профиль пользователя",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "user": {
-                                    "$ref": "#/definitions/User"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [{"TelegramAuth": []}],
-                "description": "Обновляет данные профиля авторизованного пользователя",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["users"],
-                "summary": "Обновить профиль пользователя",
-                "parameters": [
-                    {
-                        "description": "Данные для обновления",
-                        "name": "profile",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "username": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {"type": "string"},
-                                "user": {"$ref": "#/definitions/User"}
-                            }
-                        }
-                    },
-                    "400": {"description": "Bad Request", "schema": {"$ref": "#/definitions/Error"}},
-                    "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/Error"}},
-                    "500": {"description": "Internal Server Error", "schema": {"$ref": "#/definitions/Error"}}
-                }
-            }
-        },
-        "/tables": {
-            "get": {
-                "description": "Возвращает список столов по указанной категории",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["tables"],
-                "summary": "Получить список столов",
-                "parameters": [
-                    {
-                        "enum": ["ALL", "LOW", "MID", "VIP"],
-                        "type": "string",
-                        "default": "ALL",
-                        "description": "Категория столов",
-                        "name": "category",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/TableResponse"
-                        }
-                    },
-                    "500": {"description": "Internal Server Error", "schema": {"$ref": "#/definitions/Error"}}
-                }
-            }
-        },
-        "/tables/{id}": {
-            "get": {
-                "description": "Возвращает информацию о конкретном столе",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["tables"],
-                "summary": "Получить стол по ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID стола",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {"description": "OK", "schema": {"$ref": "#/definitions/Table"}},
-                    "400": {"description": "Bad Request", "schema": {"$ref": "#/definitions/Error"}},
-                    "404": {"description": "Not Found", "schema": {"$ref": "#/definitions/Error"}}
-                }
-            }
-        },
-        "/tables/{id}/join": {
-            "post": {
-                "security": [{"TelegramAuth": []}],
-                "description": "Позволяет авторизованному игроку присоединиться к указанному столу",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["tables"],
-                "summary": "Присоединиться к столу",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID стола",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {"type": "string"},
-                                "table": {"$ref": "#/definitions/Table"},
-                                "seat": {"type": "integer"},
-                                "chips": {"type": "integer"},
-                                "balance": {"type": "integer"}
-                            }
-                        }
-                    },
-                    "400": {"description": "Bad Request", "schema": {"$ref": "#/definitions/Error"}},
-                    "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/Error"}},
-                    "404": {"description": "Not Found", "schema": {"$ref": "#/definitions/Error"}},
-                    "500": {"description": "Internal Server Error", "schema": {"$ref": "#/definitions/Error"}}
-                }
-            }
-        },
-        "/join-available-table": {
-            "post": {
-                "security": [{"TelegramAuth": []}],
-                "description": "Автоматически находит доступный стол указанной категории или создает новый",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["tables"],
-                "summary": "Присоединиться к доступному столу",
-                "parameters": [
-                    {
-                        "description": "Категория стола",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "category": {
-                                    "type": "string",
-                                    "enum": ["LOW", "MID", "VIP"]
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {"type": "string"},
-                                "table": {"$ref": "#/definitions/Table"},
-                                "seat": {"type": "integer"},
-                                "chips": {"type": "integer"},
-                                "balance": {"type": "integer"},
-                                "additional_table_created": {"type": "boolean"},
-                                "additional_table": {"$ref": "#/definitions/Table"}
-                            }
-                        }
-                    },
-                    "400": {"description": "Bad Request", "schema": {"$ref": "#/definitions/Error"}},
-                    "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/Error"}},
-                    "500": {"description": "Internal Server Error", "schema": {"$ref": "#/definitions/Error"}}
-                }
-            }
-        },
         "/games/{gameId}": {
             "get": {
-                "security": [{"TelegramAuth": []}],
+                "security": [
+                    {
+                        "TelegramAuth": []
+                    }
+                ],
                 "description": "Возвращает текущее состояние игры по ID",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["game"],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
                 "summary": "Получить состояние игры",
                 "parameters": [
                     {
@@ -257,20 +46,59 @@
                     }
                 ],
                 "responses": {
-                    "200": {"description": "OK", "schema": {"$ref": "#/definitions/Game"}},
-                    "400": {"description": "Bad Request", "schema": {"$ref": "#/definitions/Error"}},
-                    "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/Error"}},
-                    "404": {"description": "Not Found", "schema": {"$ref": "#/definitions/Error"}}
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
         },
         "/games/{gameId}/action": {
             "post": {
-                "security": [{"TelegramAuth": []}],
+                "security": [
+                    {
+                        "TelegramAuth": []
+                    }
+                ],
                 "description": "Обрабатывает игровое действие игрока (fold, call, raise, check, bet)",
-                "consumes": ["application/json"],
-                "produces": ["application/json"],
-                "tags": ["game"],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
                 "summary": "Сделать ход в игре",
                 "parameters": [
                     {
@@ -287,14 +115,108 @@
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "properties": {
-                                "action": {
-                                    "type": "string",
-                                    "enum": ["fold", "call", "raise", "check", "bet"]
-                                },
-                                "amount": {
-                                    "type": "integer"
-                                }
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/healthcheck": {
+            "get": {
+                "description": "Возвращает статус работы сервера",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Проверка состояния сервера",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/join-available-table": {
+            "post": {
+                "security": [
+                    {
+                        "TelegramAuth": []
+                    }
+                ],
+                "description": "Автоматически находит доступный стол указанной категории или создает новый",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Присоединиться к доступному столу",
+                "parameters": [
+                    {
+                        "description": "Категория стола",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -304,108 +226,720 @@
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "properties": {
-                                "message": {"type": "string"},
-                                "game": {"$ref": "#/definitions/Game"}
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
-                    "400": {"description": "Bad Request", "schema": {"$ref": "#/definitions/Error"}},
-                    "401": {"description": "Unauthorized", "schema": {"$ref": "#/definitions/Error"}},
-                    "404": {"description": "Not Found", "schema": {"$ref": "#/definitions/Error"}},
-                    "500": {"description": "Internal Server Error", "schema": {"$ref": "#/definitions/Error"}}
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "security": [
+                    {
+                        "TelegramAuth": []
+                    }
+                ],
+                "description": "Возвращает профиль авторизованного пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Получить профиль пользователя",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "TelegramAuth": []
+                    }
+                ],
+                "description": "Обновляет данные профиля авторизованного пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Обновить профиль пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления",
+                        "name": "profile",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/tables": {
+            "get": {
+                "description": "Возвращает список столов по указанной категории",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Получить список столов",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ALL",
+                            "LOW",
+                            "MID",
+                            "VIP"
+                        ],
+                        "type": "string",
+                        "default": "ALL",
+                        "description": "Категория столов",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TableResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/tables/{id}": {
+            "get": {
+                "description": "Возвращает информацию о конкретном столе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Получить стол по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID стола",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Table"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tables": {
+            "get": {
+                "description": "Возвращает список столов по указанной категории",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Получить список столов",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ALL",
+                            "LOW",
+                            "MID",
+                            "VIP"
+                        ],
+                        "type": "string",
+                        "default": "ALL",
+                        "description": "Категория столов",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TableResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tables/{id}": {
+            "get": {
+                "description": "Возвращает информацию о конкретном столе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Получить стол по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID стола",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Table"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tables/{id}/join": {
+            "post": {
+                "security": [
+                    {
+                        "TelegramAuth": []
+                    }
+                ],
+                "description": "Позволяет авторизованному игроку присоединиться к указанному столу",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tables"
+                ],
+                "summary": "Присоединиться к столу",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID стола",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tables/{id}/start-game": {
+            "post": {
+                "security": [
+                    {
+                        "TelegramAuth": []
+                    }
+                ],
+                "description": "Начинает новую игру в покер за указанным столом",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "Начать игру за столом",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID стола",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
         }
     },
     "definitions": {
-        "User": {
+        "models.Card": {
             "type": "object",
             "properties": {
-                "uuid": {"type": "string"},
-                "username": {"type": "string"},
-                "telegram_id": {"type": "integer"},
-                "balance": {"type": "integer"},
-                "created_at": {"type": "string", "format": "date-time"},
-                "updated_at": {"type": "string", "format": "date-time"}
+                "rank": {
+                    "description": "2-10, J, Q, K, A",
+                    "type": "string"
+                },
+                "suit": {
+                    "description": "hearts, diamonds, clubs, spades",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "2-14 (A=14)",
+                    "type": "integer"
+                }
             }
         },
-        "Table": {
+        "models.Game": {
             "type": "object",
             "properties": {
-                "id": {"type": "integer"},
-                "category": {"type": "string", "enum": ["LOW", "MID", "VIP"]},
-                "blinds": {"type": "string"},
-                "buy_in": {"type": "integer"},
-                "players": {"type": "integer"},
-                "max_seats": {"type": "integer"},
-                "created_at": {"type": "string", "format": "date-time"},
-                "updated_at": {"type": "string", "format": "date-time"}
+                "big_blind": {
+                    "type": "integer"
+                },
+                "community_cards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Card"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_bet": {
+                    "type": "integer"
+                },
+                "current_player": {
+                    "type": "integer"
+                },
+                "dealer_position": {
+                    "type": "integer"
+                },
+                "deck": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Card"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.GamePlayer"
+                    }
+                },
+                "pot": {
+                    "type": "integer"
+                },
+                "small_blind": {
+                    "type": "integer"
+                },
+                "state": {
+                    "$ref": "#/definitions/models.GameState"
+                },
+                "table": {
+                    "description": "Связи",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Table"
+                        }
+                    ]
+                },
+                "table_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
             }
         },
-        "TableResponse": {
+        "models.GamePlayer": {
+            "type": "object",
+            "properties": {
+                "bet": {
+                    "type": "integer"
+                },
+                "cards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Card"
+                    }
+                },
+                "chips": {
+                    "type": "integer"
+                },
+                "game": {
+                    "description": "Связи",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Game"
+                        }
+                    ]
+                },
+                "game_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_all_in": {
+                    "type": "boolean"
+                },
+                "is_folded": {
+                    "type": "boolean"
+                },
+                "last_action": {
+                    "$ref": "#/definitions/models.PlayerAction"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "user_uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GameState": {
+            "type": "string",
+            "enum": [
+                "waiting",
+                "preflop",
+                "flop",
+                "turn",
+                "river",
+                "showdown",
+                "finished"
+            ],
+            "x-enum-varnames": [
+                "GameStateWaiting",
+                "GameStatePreFlop",
+                "GameStateFlop",
+                "GameStateTurn",
+                "GameStateRiver",
+                "GameStateShowdown",
+                "GameStateFinished"
+            ]
+        },
+        "models.PlayerAction": {
+            "type": "string",
+            "enum": [
+                "fold",
+                "call",
+                "raise",
+                "check",
+                "bet"
+            ],
+            "x-enum-varnames": [
+                "ActionFold",
+                "ActionCall",
+                "ActionRaise",
+                "ActionCheck",
+                "ActionBet"
+            ]
+        },
+        "models.Table": {
+            "type": "object",
+            "properties": {
+                "blinds": {
+                    "type": "string"
+                },
+                "buy_in": {
+                    "type": "integer"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "max_seats": {
+                    "type": "integer"
+                },
+                "players": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TableResponse": {
             "type": "object",
             "properties": {
                 "tables": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/Table"}
+                    "items": {
+                        "$ref": "#/definitions/models.Table"
+                    }
                 }
             }
         },
-        "Card": {
+        "models.User": {
             "type": "object",
             "properties": {
-                "suit": {"type": "string"},
-                "rank": {"type": "string"},
-                "value": {"type": "integer"}
-            }
-        },
-        "GamePlayer": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "integer"},
-                "game_id": {"type": "string"},
-                "user_uuid": {"type": "string"},
-                "position": {"type": "integer"},
-                "cards": {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/Card"}
+                "balance": {
+                    "type": "integer"
                 },
-                "chips": {"type": "integer"},
-                "bet": {"type": "integer"},
-                "is_folded": {"type": "boolean"},
-                "is_all_in": {"type": "boolean"},
-                "last_action": {"type": "string"}
-            }
-        },
-        "Game": {
-            "type": "object",
-            "properties": {
-                "id": {"type": "string"},
-                "table_id": {"type": "integer"},
-                "state": {"type": "string", "enum": ["waiting", "preflop", "flop", "turn", "river", "showdown", "finished"]},
-                "community_cards": {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/Card"}
+                "created_at": {
+                    "type": "string"
                 },
-                "pot": {"type": "integer"},
-                "current_bet": {"type": "integer"},
-                "dealer_position": {"type": "integer"},
-                "current_player": {"type": "integer"},
-                "small_blind": {"type": "integer"},
-                "big_blind": {"type": "integer"},
-                "players": {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/GamePlayer"}
+                "telegram_id": {
+                    "type": "integer"
                 },
-                "created_at": {"type": "string", "format": "date-time"},
-                "updated_at": {"type": "string", "format": "date-time"}
-            }
-        },
-        "Error": {
-            "type": "object",
-            "properties": {
-                "error": {"type": "string"}
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
             }
         }
     },
