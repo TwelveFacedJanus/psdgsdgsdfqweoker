@@ -1,0 +1,493 @@
+swagger: "2.0"
+info:
+  description: "Полнофункциональный REST API для игры в покер с категориями столов LOW, MID, VIP. Использует PostgreSQL, Kafka, Redis и авторизацию через Telegram Web App"
+  title: "Poker REST API"
+  termsOfService: "http://swagger.io/terms/"
+  contact:
+    name: "API Support"
+    url: "http://www.swagger.io/support"
+    email: "support@swagger.io"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+  version: "1.0"
+host: "localhost:3000"
+basePath: "/api/v1"
+
+securityDefinitions:
+  TelegramAuth:
+    type: apiKey
+    name: x-init-data
+    in: header
+    description: "Telegram Web App init_data для авторизации"
+
+paths:
+  /healthcheck:
+    get:
+      tags:
+        - system
+      summary: "Проверка состояния сервера"
+      description: "Возвращает статус работы сервера"
+      consumes:
+        - application/json
+      produces:
+        - text/plain
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: string
+
+  /profile:
+    get:
+      tags:
+        - users
+      summary: "Получить профиль пользователя"
+      description: "Возвращает профиль авторизованного пользователя"
+      security:
+        - TelegramAuth: []
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            properties:
+              user:
+                $ref: "#/definitions/User"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+    put:
+      tags:
+        - users
+      summary: "Обновить профиль пользователя"
+      description: "Обновляет данные профиля авторизованного пользователя"
+      security:
+        - TelegramAuth: []
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: profile
+          in: body
+          required: true
+          description: "Данные для обновления"
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              user:
+                $ref: "#/definitions/User"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+
+  /tables:
+    get:
+      tags:
+        - tables
+      summary: "Получить список столов"
+      description: "Возвращает список столов по указанной категории"
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: category
+          in: query
+          type: string
+          enum: [ALL, LOW, MID, VIP]
+          default: ALL
+          description: "Категория столов"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/TableResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+
+  /tables/{id}:
+    get:
+      tags:
+        - tables
+      summary: "Получить стол по ID"
+      description: "Возвращает информацию о конкретном столе"
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+          description: "ID стола"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Table"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+
+  /tables/{id}/join:
+    post:
+      tags:
+        - tables
+      summary: "Присоединиться к столу"
+      description: "Позволяет авторизованному игроку присоединиться к указанному столу"
+      security:
+        - TelegramAuth: []
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+          description: "ID стола"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              table:
+                $ref: "#/definitions/Table"
+              seat:
+                type: integer
+              chips:
+                type: integer
+              balance:
+                type: integer
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+
+  /join-available-table:
+    post:
+      tags:
+        - tables
+      summary: "Присоединиться к доступному столу"
+      description: "Автоматически находит доступный стол указанной категории или создает новый"
+      security:
+        - TelegramAuth: []
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: request
+          in: body
+          required: true
+          description: "Категория стола"
+          schema:
+            type: object
+            properties:
+              category:
+                type: string
+                enum: [LOW, MID, VIP]
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              table:
+                $ref: "#/definitions/Table"
+              seat:
+                type: integer
+              chips:
+                type: integer
+              balance:
+                type: integer
+              additional_table_created:
+                type: boolean
+              additional_table:
+                $ref: "#/definitions/Table"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+
+  /games/{gameId}:
+    get:
+      tags:
+        - game
+      summary: "Получить состояние игры"
+      description: "Возвращает текущее состояние игры по ID"
+      security:
+        - TelegramAuth: []
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          type: string
+          required: true
+          description: "ID игры"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Game"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+
+  /games/{gameId}/action:
+    post:
+      tags:
+        - game
+      summary: "Сделать ход в игре"
+      description: "Обрабатывает игровое действие игрока (fold, call, raise, check, bet)"
+      security:
+        - TelegramAuth: []
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: gameId
+          in: path
+          type: string
+          required: true
+          description: "ID игры"
+        - name: action
+          in: body
+          required: true
+          description: "Действие игрока"
+          schema:
+            type: object
+            properties:
+              action:
+                type: string
+                enum: [fold, call, raise, check, bet]
+              amount:
+                type: integer
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              game:
+                $ref: "#/definitions/Game"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/Error"
+        401:
+          description: "Unauthorized"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Not Found"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/Error"
+
+definitions:
+  User:
+    type: object
+    properties:
+      uuid:
+        type: string
+      username:
+        type: string
+      telegram_id:
+        type: integer
+      balance:
+        type: integer
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  Table:
+    type: object
+    properties:
+      id:
+        type: integer
+      category:
+        type: string
+        enum: [LOW, MID, VIP]
+      blinds:
+        type: string
+      buy_in:
+        type: integer
+      players:
+        type: integer
+      max_seats:
+        type: integer
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  TableResponse:
+    type: object
+    properties:
+      tables:
+        type: array
+        items:
+          $ref: "#/definitions/Table"
+
+  Card:
+    type: object
+    properties:
+      suit:
+        type: string
+      rank:
+        type: string
+      value:
+        type: integer
+
+  GamePlayer:
+    type: object
+    properties:
+      id:
+        type: integer
+      game_id:
+        type: string
+      user_uuid:
+        type: string
+      position:
+        type: integer
+      cards:
+        type: array
+        items:
+          $ref: "#/definitions/Card"
+      chips:
+        type: integer
+      bet:
+        type: integer
+      is_folded:
+        type: boolean
+      is_all_in:
+        type: boolean
+      last_action:
+        type: string
+
+  Game:
+    type: object
+    properties:
+      id:
+        type: string
+      table_id:
+        type: integer
+      state:
+        type: string
+        enum: [waiting, preflop, flop, turn, river, showdown, finished]
+      community_cards:
+        type: array
+        items:
+          $ref: "#/definitions/Card"
+      pot:
+        type: integer
+      current_bet:
+        type: integer
+      dealer_position:
+        type: integer
+      current_player:
+        type: integer
+      small_blind:
+        type: integer
+      big_blind:
+        type: integer
+      players:
+        type: array
+        items:
+          $ref: "#/definitions/GamePlayer"
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+
+  Error:
+    type: object
+    properties:
+      error:
+        type: string
