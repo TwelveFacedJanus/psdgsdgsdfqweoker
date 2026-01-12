@@ -1,4 +1,29 @@
 services:
+  poker-app:
+    build: .
+    container_name: poker_app
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=poker_user
+      - DB_PASSWORD=poker_password
+      - DB_NAME=poker_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - KAFKA_BROKERS=kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./docs:/root/docs
+    restart: unless-stopped
+
   postgres:
     image: postgres:15-alpine
     container_name: poker_postgres
