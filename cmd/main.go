@@ -27,7 +27,7 @@ import (
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
 
-// @host 208.123.185.204:3000
+// @host цветынинасалават.рф
 // @BasePath /api/v1
 
 // @securityDefinitions.apikey TelegramAuth

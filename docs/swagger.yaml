@@ -157,7 +157,7 @@ definitions:
       uuid:
         type: string
     type: object
-host: 208.123.185.204:3000
+host: цветынинасалават.рф
 info:
   contact:
     email: support@swagger.io

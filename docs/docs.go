@@ -962,7 +962,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "208.123.185.204:3000",
+	Host:             "цветынинасалават.рф",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Poker REST API",
